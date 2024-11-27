@@ -1,143 +1,89 @@
 const asyncHandler = require('express-async-handler');
 const Category = require('../models/categoryModel');
 const { StatusCodes } = require('http-status-codes');
+const { validateObjectId, sendResponse } = require('../utils/helper');
+const validator = require('validator');
 
 const getCategoryController = asyncHandler(async (req, res) => {
+    const categories = await Category.find();
 
-    // const category = await Category.find({ title: "test" });
-    const category = await Category.find(); // ALl Records 
-
-    if (!category) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            error: 'Unable to fatch user information ', data: category
-        });
+    if (!categories || categories.length === 0) {
+        return sendResponse(res, StatusCodes.NOT_FOUND, 'No categories found');
     }
 
-    return res.status(StatusCodes.OK).json({ message: 'Category Fetched Successfully.', data: category });
+    return sendResponse(res, StatusCodes.OK, 'Categories fetched successfully', categories);
 });
 
 const createCategoryController = asyncHandler(async (req, res) => {
     const { title } = req.body;
 
-    // Original URL not found (Bad Request)
-    if (!title) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            error: 'Original URL is required', data: null
-        });
+    if (!title || !validator.isLength(title, { min: 3, max: 100 })) {
+        return sendResponse(res, StatusCodes.BAD_REQUEST, 'Title is required and should be between 3 and 100 characters');
     }
 
-    const newShortUrl = new Category({
-        title,
-    })
+    const newCategory = new Category({ title });
 
-    // Created
-    const responseData = await newShortUrl.save(); // Save / Update
-    if (responseData) {
-        return res.status(StatusCodes.CREATED).json({ message: 'Category Create Successfully.', data: responseData });
+    const savedCategory = await newCategory.save();
+
+    if (savedCategory) {
+        return sendResponse(res, StatusCodes.CREATED, 'Category created successfully', savedCategory);
     }
 
-    // Error
-    return res.status(StatusCodes.FORBIDDEN).json({ message: 'Something wrong.', data: responseData });
+    return sendResponse(res, StatusCodes.FORBIDDEN, 'Error creating category');
 });
 
 const updateCategoryController = asyncHandler(async (req, res) => {
-    const { title } = req.body;
     const { id } = req.params;
+    const { title } = req.body;
 
-    // Bad Request if Id not found in the URL
-    if (!title) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            error: 'Original URL is required', data: null
-        });
+    if (!validateObjectId(id)) {
+        return sendResponse(res, StatusCodes.BAD_REQUEST, 'Invalid Category ID');
     }
 
-    // Bad Request if Id not found in the URL
-    if (!id) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            error: 'ID not found in the URL', data: null
-        });
+    if (!title || !validator.isLength(title, { min: 3, max: 100 })) {
+        return sendResponse(res, StatusCodes.BAD_REQUEST, 'Title is required and should be between 3 and 100 characters');
     }
 
-    // Find and Not found
-    const findURL = await Category.find({ _id: id });
-    if (!findURL) {
-        return res.status(StatusCodes.NOT_FOUND).json({ message: 'Unable to find Url with given id', data: null });
+    const updatedCategory = await Category.findByIdAndUpdate(id, { title }, { new: true });
+
+    if (!updatedCategory) {
+        return sendResponse(res, StatusCodes.NOT_FOUND, 'Category not found');
     }
 
-    // Find and Update
-    // const updateData = await Category.findOneAndUpdate({ _id: id }, { title: title }, { new: true })
-    // const updateData = await Category.findOneAndReplace({ _id: id }, { title: title }, { new: true })
-    const updateData = await Category.findByIdAndUpdate({ _id: id }, { title: title }, { new: true }) // By Default original that's why passing third new parameter
-    if (updateData) {
-        return res.status(200).json({ message: 'Category Updated', data: updateData });
-    }
-
-    // Error
-    return res.status(StatusCodes.FORBIDDEN).json({ message: 'Unable to update category.', data: null });
+    return sendResponse(res, StatusCodes.OK, 'Category updated successfully', updatedCategory);
 });
 
-// Diffience unclear
 const partialUpdateCategoryController = asyncHandler(async (req, res) => {
-    const { title } = req.body; ///  4 - 5 Put (Full) (Patch partial)
     const { id } = req.params;
+    const updateData = req.body;
 
-    // Bad Request if Id not found in the URL
-    if (!title) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            error: 'Original URL is required', data: null
-        });
+    if (!validateObjectId(id)) {
+        return sendResponse(res, StatusCodes.BAD_REQUEST, 'Invalid Category ID');
     }
 
-    // Bad Request if Id not found in the URL
-    if (!id) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            error: 'ID not found in the URL', data: null
-        });
+    const updatedCategory = await Category.findByIdAndUpdate(id, updateData, { new: true });
+
+    if (!updatedCategory) {
+        return sendResponse(res, StatusCodes.NOT_FOUND, 'Category not found');
     }
 
-    // Find and Not found
-    const findURL = await Category.find({ _id: id });
-    if (!findURL) {
-        return res.status(StatusCodes.NOT_FOUND).json({ message: 'Unable to find Url with given id', data: null });
-    }
-
-    // Find and Update
-    const updateData = await Category.findByIdAndUpdate({ _id: id }, { title: title }, { new: true }) // By Default original that's why passing third new parameter
-    if (updateData) {
-        return res.status(200).json({ message: 'Category Updated', data: updateData });
-    }
-
-    // Error
-    return res.status(StatusCodes.FORBIDDEN).json({ message: 'Unable to update category.', data: null });
+    return sendResponse(res, StatusCodes.OK, 'Category partially updated', updatedCategory);
 });
 
 const deleteCategoryController = asyncHandler(async (req, res) => {
-
     const { id } = req.params;
-    // Bad Request if Id not found in the URL
-    if (!id) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            error: 'ID not found in the URL', data: null
-        });
+
+    if (!validateObjectId(id)) {
+        return sendResponse(res, StatusCodes.BAD_REQUEST, 'Invalid Category ID');
     }
 
-    // Invalid ID
+    const deletedCategory = await Category.findByIdAndDelete(id);
 
-    // Find and Not found
-    const findURL = await Category.find({ _id: id });
-    if (!findURL) {
-        return res.status(StatusCodes.NOT_FOUND).json({ message: 'Unable to find Url with given id', data: null });
+    if (!deletedCategory) {
+        return sendResponse(res, StatusCodes.NOT_FOUND, 'Category not found');
     }
 
-    // Find and Delete
-    const deletedData = await Category.findByIdAndDelete({ _id: id });
-    if (deletedData) {
-        return res.status(200).json({ message: 'Category Deleted', data: deletedData });
-    }
-
-    // Error
-    return res.status(StatusCodes.FORBIDDEN).json({ message: 'Unable to delete category.', data: null });
-
+    return sendResponse(res, StatusCodes.OK, 'Category deleted successfully', deletedCategory);
 });
 
 module.exports = {
@@ -146,4 +92,4 @@ module.exports = {
     updateCategoryController,
     partialUpdateCategoryController,
     deleteCategoryController
-}
+};

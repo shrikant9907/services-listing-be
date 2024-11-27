@@ -1,140 +1,99 @@
 const asyncHandler = require('express-async-handler');
 const Location = require('../models/locationModel');
 const { StatusCodes } = require('http-status-codes');
+const { validateObjectId, sendResponse } = require('../utils/helper');
+const validator = require('validator');
 
 const getLocationController = asyncHandler(async (req, res) => {
+    const locations = await Location.find();
 
-    const locations = await Location.find(); // ALl Records 
-
-    if (!locations) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            error: 'Unable to fatch user information ', data: locations
-        });
+    if (!locations || locations.length === 0) {
+        return sendResponse(res, StatusCodes.NOT_FOUND, 'No locations found');
     }
 
-    return res.status(StatusCodes.OK).json({ message: 'Location Fetched Successfully.', data: locations });
+    return sendResponse(res, StatusCodes.OK, 'Locations fetched successfully', locations);
 });
 
 const createLocationController = asyncHandler(async (req, res) => {
-    const { title } = req.body;
+    const { title, address, city, state, country, postalCode } = req.body;
 
-    // Original URL not found (Bad Request)
-    if (!title) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            error: 'Original URL is required', data: null
-        });
+    if (!title || !validator.isLength(title, { min: 3, max: 100 })) {
+        return sendResponse(res, StatusCodes.BAD_REQUEST, 'Title is required and should be between 3 and 100 characters');
     }
 
     const newLocation = new Location({
         title,
-    })
+        address,
+        city,
+        state,
+        country,
+        postalCode,
+    });
 
-    // Created
-    const responseData = await newLocation.save(); // Save / Update
-    if (responseData) {
-        return res.status(StatusCodes.CREATED).json({ message: 'Location Create Successfully.', data: responseData });
+    const savedLocation = await newLocation.save();
+
+    if (savedLocation) {
+        return sendResponse(res, StatusCodes.CREATED, 'Location created successfully', savedLocation);
     }
 
-    // Error
-    return res.status(StatusCodes.FORBIDDEN).json({ message: 'Something wrong.', data: responseData });
+    return sendResponse(res, StatusCodes.FORBIDDEN, 'Error creating location');
 });
 
 const updateLocationController = asyncHandler(async (req, res) => {
-    const { title } = req.body;
+    const { title, address, city, state, country, postalCode } = req.body;
     const { id } = req.params;
 
-    // Bad Request if Id not found in the URL
-    if (!title) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            error: 'Original URL is required', data: null
-        });
+    if (!validateObjectId(id)) {
+        return sendResponse(res, StatusCodes.BAD_REQUEST, 'Invalid Location ID');
     }
 
-    // Bad Request if Id not found in the URL
-    if (!id) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            error: 'ID not found in the URL', data: null
-        });
+    const updatedLocation = await Location.findByIdAndUpdate(id, {
+        title,
+        address,
+        city,
+        state,
+        country,
+        postalCode
+    }, { new: true });
+
+    if (!updatedLocation) {
+        return sendResponse(res, StatusCodes.NOT_FOUND, 'Location not found');
     }
 
-    // Find and Not found
-    const findURL = await Location.find({ _id: id });
-    if (!findURL) {
-        return res.status(StatusCodes.NOT_FOUND).json({ message: 'Unable to find Url with given id', data: null });
-    }
-
-    // Find and Update
-    const updateData = await Location.findByIdAndUpdate({ _id: id }, { title: title }, { new: true }) // By Default original that's why passing third new parameter
-    if (updateData) {
-        return res.status(200).json({ message: 'Location Updated', data: updateData });
-    }
-
-    // Error
-    return res.status(StatusCodes.FORBIDDEN).json({ message: 'Unable to update location.', data: null });
+    return sendResponse(res, StatusCodes.OK, 'Location updated successfully', updatedLocation);
 });
 
-// Diffience unclear
 const partialUpdateLocationController = asyncHandler(async (req, res) => {
-    const { title } = req.body; ///  4 - 5 Put (Full) (Patch partial)
+    const updateData = req.body;
     const { id } = req.params;
 
-    // Bad Request if Id not found in the URL
-    if (!title) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            error: 'Original URL is required', data: null
-        });
+    if (!validateObjectId(id)) {
+        return sendResponse(res, StatusCodes.BAD_REQUEST, 'Invalid Location ID');
     }
 
-    // Bad Request if Id not found in the URL
-    if (!id) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            error: 'ID not found in the URL', data: null
-        });
+    const updatedLocation = await Location.findByIdAndUpdate(id, updateData, { new: true });
+
+    if (!updatedLocation) {
+        return sendResponse(res, StatusCodes.NOT_FOUND, 'Location not found');
     }
 
-    // Find and Not found
-    const findURL = await Location.find({ _id: id });
-    if (!findURL) {
-        return res.status(StatusCodes.NOT_FOUND).json({ message: 'Unable to find Url with given id', data: null });
-    }
-
-    // Find and Update
-    const updateData = await Location.findByIdAndUpdate({ _id: id }, { title: title }, { new: true }) // By Default original that's why passing third new parameter
-    if (updateData) {
-        return res.status(200).json({ message: 'Location Updated', data: updateData });
-    }
-
-    // Error
-    return res.status(StatusCodes.FORBIDDEN).json({ message: 'Unable to update location.', data: null });
+    return sendResponse(res, StatusCodes.OK, 'Location partially updated', updatedLocation);
 });
 
 const deleteLocationController = asyncHandler(async (req, res) => {
-
     const { id } = req.params;
-    // Bad Request if Id not found in the URL
-    if (!id) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            error: 'ID not found in the URL', data: null
-        });
+
+    if (!validateObjectId(id)) {
+        return sendResponse(res, StatusCodes.BAD_REQUEST, 'Invalid Location ID');
     }
 
-    // Invalid ID
+    const deletedLocation = await Location.findByIdAndDelete(id);
 
-    // Find and Not found
-    const findURL = await Location.find({ _id: id });
-    if (!findURL) {
-        return res.status(StatusCodes.NOT_FOUND).json({ message: 'Unable to find Url with given id', data: null });
+    if (!deletedLocation) {
+        return sendResponse(res, StatusCodes.NOT_FOUND, 'Location not found');
     }
 
-    // Find and Delete
-    const deletedData = await Location.findByIdAndDelete({ _id: id });
-    if (deletedData) {
-        return res.status(200).json({ message: 'Location Deleted', data: deletedData });
-    }
-
-    // Error
-    return res.status(StatusCodes.FORBIDDEN).json({ message: 'Unable to delete location.', data: null });
-
+    return sendResponse(res, StatusCodes.OK, 'Location deleted successfully', deletedLocation);
 });
 
 module.exports = {
@@ -143,4 +102,4 @@ module.exports = {
     updateLocationController,
     partialUpdateLocationController,
     deleteLocationController
-}
+};
