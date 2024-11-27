@@ -5,11 +5,12 @@ const SchemaObject = {
         type: String,
         require: true
     },
-    categoryId: {
+    category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
+        require: true
     },
-    locationId: {
+    location: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Location',
     }

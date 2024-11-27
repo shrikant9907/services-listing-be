@@ -1,11 +1,13 @@
 const asyncHandler = require('express-async-handler');
 const Service = require('../models/serviceModel');
 const { StatusCodes } = require('http-status-codes');
-const { getShortString } = require('../utils/helper');
 
 const getserviceController = asyncHandler(async (req, res) => {
 
-    const services = await Service.find(); // ALl Records 
+    const services = await Service.find()
+        .sort({ '_id': -1 })
+        .populate('category')
+        .populate('location');
 
     if (!services) {
         return res.status(StatusCodes.BAD_REQUEST).json({
@@ -17,17 +19,19 @@ const getserviceController = asyncHandler(async (req, res) => {
 });
 
 const createserviceController = asyncHandler(async (req, res) => {
-    const { title } = req.body;
+    const { title, category, location } = req.body;
 
     // Title not found (Bad Request)
-    if (!title) {
+    if (!title || !category || !location) {
         return res.status(StatusCodes.BAD_REQUEST).json({
-            error: 'Title is required', data: null
+            error: 'Title, Category and Location are required', data: null
         });
     }
 
     const newShortUrl = new Service({
         title,
+        category,
+        location
     })
 
     // Created

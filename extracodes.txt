@@ -17,3 +17,15 @@ Location:
 Service: 
  - Category
  - Location
+
+
+// 5 User 
+
+Location = Indore
+Category = Computer Repair
+Title = Computer Reparing Servcie in Indore
+
+
+ Improvement for later
+(Email - Email)
+(Phone - OTP)
