@@ -1,16 +1,19 @@
 
 
+
+
+- Database name given
+
 Category: 
 - Controller, Model and Route
 - Route app.js
-- Database name given
-- Postman (Check)
-
-
+- Postman (Check - Done)
 
 Location: 
-
+- Controller, Model and Route
+- Route app.js 
+- Postman (Check - Done)
 
 Service: 
+ - Category
  - Location
- - category

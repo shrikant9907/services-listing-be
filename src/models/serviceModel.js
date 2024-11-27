@@ -1,17 +1,21 @@
 const { Schema, mongoose } = require("mongoose");
 
 const SchemaObject = {
-    originalUrl: {
+    title: {
         type: String,
         require: true
     },
-    shortUrl: {
-        type: String,
+    categoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+    },
+    locationId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Location',
     }
 }
 
-const shortUrlSchema = new Schema(SchemaObject, { timestamps: true })
+const serviceSchema = new Schema(SchemaObject, { timestamps: true })
 
-const ShortURL = mongoose.model('ShortURL', shortUrlSchema);
-module.exports = ShortURL;
-// export default Model .mjs
+const Service = mongoose.model('Service', serviceSchema);
+module.exports = Service; 

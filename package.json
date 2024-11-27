@@ -1,7 +1,7 @@
 {
   "name": "short-url-be",
   "version": "1.0.0",
-  "description": "Short URL Generator - Backend Application in Node JS, Express JS and MongoDB",
+  "description": "Service Generator - Backend Application in Node JS, Express JS and MongoDB",
   "main": "app.js",
   "scripts": {
     "start": "node --env-file=.env.prod app.js",
