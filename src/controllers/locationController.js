@@ -21,6 +21,11 @@ const createLocationController = asyncHandler(async (req, res) => {
         return sendResponse(res, StatusCodes.BAD_REQUEST, 'Title is required and should be between 3 and 100 characters');
     }
 
+    const existingLocation = await Location.findOne({ title });
+    if (existingLocation) {
+        return sendResponse(res, StatusCodes.BAD_REQUEST, 'A location with this title already exists');
+    }
+
     const newLocation = new Location({
         title,
         address,
@@ -47,13 +52,20 @@ const updateLocationController = asyncHandler(async (req, res) => {
         return sendResponse(res, StatusCodes.BAD_REQUEST, 'Invalid Location ID');
     }
 
+    if (title) {
+        const existingLocation = await Location.findOne({ title });
+        if (existingLocation && existingLocation._id.toString() !== id) {
+            return sendResponse(res, StatusCodes.BAD_REQUEST, 'A location with this title already exists');
+        }
+    }
+
     const updatedLocation = await Location.findByIdAndUpdate(id, {
         title,
         address,
         city,
         state,
         country,
-        postalCode
+        postalCode,
     }, { new: true });
 
     if (!updatedLocation) {
@@ -69,6 +81,13 @@ const partialUpdateLocationController = asyncHandler(async (req, res) => {
 
     if (!validateObjectId(id)) {
         return sendResponse(res, StatusCodes.BAD_REQUEST, 'Invalid Location ID');
+    }
+
+    if (updateData.title) {
+        const existingLocation = await Location.findOne({ title: updateData.title });
+        if (existingLocation && existingLocation._id.toString() !== id) {
+            return sendResponse(res, StatusCodes.BAD_REQUEST, 'A location with this title already exists');
+        }
     }
 
     const updatedLocation = await Location.findByIdAndUpdate(id, updateData, { new: true });
@@ -101,5 +120,5 @@ module.exports = {
     createLocationController,
     updateLocationController,
     partialUpdateLocationController,
-    deleteLocationController
+    deleteLocationController,
 };

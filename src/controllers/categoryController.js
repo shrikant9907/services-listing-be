@@ -21,6 +21,11 @@ const createCategoryController = asyncHandler(async (req, res) => {
         return sendResponse(res, StatusCodes.BAD_REQUEST, 'Title is required and should be between 3 and 100 characters');
     }
 
+    const existingCategory = await Category.findOne({ title });
+    if (existingCategory) {
+        return sendResponse(res, StatusCodes.BAD_REQUEST, 'A category with this title already exists');
+    }
+
     const newCategory = new Category({ title });
 
     const savedCategory = await newCategory.save();
@@ -44,6 +49,12 @@ const updateCategoryController = asyncHandler(async (req, res) => {
         return sendResponse(res, StatusCodes.BAD_REQUEST, 'Title is required and should be between 3 and 100 characters');
     }
 
+    // Check if the title is being updated and if the new title already exists
+    const existingCategory = await Category.findOne({ title });
+    if (existingCategory && existingCategory._id.toString() !== id) {
+        return sendResponse(res, StatusCodes.BAD_REQUEST, 'A category with this title already exists');
+    }
+
     const updatedCategory = await Category.findByIdAndUpdate(id, { title }, { new: true });
 
     if (!updatedCategory) {
@@ -59,6 +70,14 @@ const partialUpdateCategoryController = asyncHandler(async (req, res) => {
 
     if (!validateObjectId(id)) {
         return sendResponse(res, StatusCodes.BAD_REQUEST, 'Invalid Category ID');
+    }
+
+    // Check if the title is being updated and if the new title already exists
+    if (updateData.title) {
+        const existingCategory = await Category.findOne({ title: updateData.title });
+        if (existingCategory && existingCategory._id.toString() !== id) {
+            return sendResponse(res, StatusCodes.BAD_REQUEST, 'A category with this title already exists');
+        }
     }
 
     const updatedCategory = await Category.findByIdAndUpdate(id, updateData, { new: true });

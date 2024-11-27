@@ -11,7 +11,13 @@ const authorize = (roles) => {
             return next();
         }
 
+        // For user updates check
         if (roles.includes('user') && req.user.id === req.params.id) {
+            return next();
+        }
+
+        // for business owner check
+        if (roles.includes('user') && req.user.id === req.params.ownerId) {
             return next();
         }
 
