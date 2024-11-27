@@ -1,5 +1,5 @@
 const asyncHandler = require('express-async-handler');
-const ShortURL = require('../models/shortUrlModel');
+const ShortURL = require('../models/locationModel');
 const { StatusCodes } = require('http-status-codes');
 const { getShortString } = require('../utils/helper');
 

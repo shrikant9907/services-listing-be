@@ -1,19 +1,16 @@
-    const { originalUrl } = req.body;
-    if (!originalUrl) {
-        return res.status(400).json({ error: 'Original URL is required' });
-    }
 
-    // Check if the original URL already exists
-    let shortUrlEntry = await ShortURL.findOne({ originalUrl });
 
-    if (shortUrlEntry) {
-        return res.status(200).json({ message: 'Short URL already exists', data: shortUrlEntry });
-    }
+Category: 
+- Controller, Model and Route
+- Route app.js
+- Database name given
+- Postman (Check)
 
-    // Generate a unique short URL
-    const shortUrl = getShortString();
 
-    // Save the new short URL entry
-    shortUrlEntry = await ShortUrl.create({ originalUrl, shortUrl });
 
-    res.status(201).json({ message: 'Short URL created successfully', data: shortUrlEntry });
+Location: 
+
+
+Service: 
+ - Location
+ - category
