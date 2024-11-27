@@ -40,3 +40,14 @@ Location <- ID [ location name ]
 "hashID"
 
 
+
+Service
+{
+   $lookup:
+     {
+       from: "Category",
+       localField: 'category',
+       foreignField: "_id,
+       as: $categoryDetails
+     }
+}
