@@ -1,10 +1,12 @@
 const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const { StatusCodes } = require('http-status-codes');
 const User = require('../models/userModel');
-const { sendResponse } = require('../utils/helper');
+const { sendResponse, sanitizeUser, hashPassword, generateToken, generateRefreshToken } = require('../utils/helper');
+const jwt = require('jsonwebtoken');
 const validator = require('validator');
+
+let refreshTokens = [];
 
 const signupController = asyncHandler(async (req, res) => {
     const { name, email, password } = req.body;
@@ -22,22 +24,16 @@ const signupController = asyncHandler(async (req, res) => {
         return sendResponse(res, StatusCodes.BAD_REQUEST, 'Email already in use.');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await hashPassword(password);
 
-    const newUser = new User({
+    const newUser = await User.create({
         name,
         email,
         password: hashedPassword,
-        role: 'user'
+        role: 'user',
     });
 
-    const responseData = await newUser.save();
-    const userData = {
-        "_id": responseData._id,
-        "name": responseData.name,
-        "email": responseData.email,
-        "role": responseData.role,
-    }
+    const userData = sanitizeUser(newUser);
 
     return sendResponse(res, StatusCodes.CREATED, 'User registered successfully.', userData);
 });
@@ -50,7 +46,6 @@ const loginController = asyncHandler(async (req, res) => {
     }
 
     const user = await User.findOne({ email });
-    // const user = await User.findOne({ email }).select('_id name email role password');
     if (!user) {
         return sendResponse(res, StatusCodes.BAD_REQUEST, 'Invalid email or password.');
     }
@@ -60,21 +55,41 @@ const loginController = asyncHandler(async (req, res) => {
         return sendResponse(res, StatusCodes.BAD_REQUEST, 'Invalid email or password.');
     }
 
-    user.password = undefined;
+    const accessToken = generateToken(user);
+    const refreshToken = generateRefreshToken(user);
 
-    const token = jwt.sign(
-        { id: user._id, email: user.email },
-        process.env.JWT_SECRET_KEY,
-        { expiresIn: '1h' }
-    );
+    refreshTokens.push(refreshToken);
 
     return sendResponse(res, StatusCodes.OK, 'User logged in successfully.', {
-        user: user,
-        token: token
+        user: sanitizeUser(user),
+        accessToken,
+        refreshToken,
+    });
+});
+
+const refreshTokenController = asyncHandler(async (req, res) => {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+        return sendResponse(res, StatusCodes.BAD_REQUEST, 'Refresh token is required.');
+    }
+
+    if (!refreshTokens.includes(refreshToken)) {
+        return sendResponse(res, StatusCodes.UNAUTHORIZED, 'Invalid refresh token.');
+    }
+
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+        if (err) {
+            return sendResponse(res, StatusCodes.UNAUTHORIZED, 'Invalid refresh token.');
+        }
+
+        const newAccessToken = generateToken({ id: user.id, email: user.email });
+        return sendResponse(res, StatusCodes.OK, 'Access token refreshed successfully.', { accessToken: newAccessToken });
     });
 });
 
 module.exports = {
     signupController,
-    loginController
+    loginController,
+    refreshTokenController,
 };
