@@ -1,0 +1,20 @@
+{
+  "name": "short-url-be",
+  "version": "1.0.0",
+  "description": "Short URL Generator - Backend Application in Node JS, Express JS and MongoDB",
+  "main": "app.js",
+  "scripts": {
+    "start": "node --env-file=.env.prod app.js",
+    "dev": "nodemon --env-file=.env.dev app.js",
+    "deploy": "nodemon --env-file=.env.prod app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.1",
+    "express-async-handler": "^1.2.0",
+    "http-status-codes": "^2.3.0",
+    "mongoose": "^8.8.2",
+    "nodemon": "^3.1.7"
+  }
+}
