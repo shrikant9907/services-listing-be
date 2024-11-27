@@ -119,6 +119,8 @@ const updateUserController = asyncHandler(async (req, res) => {
     user.phone = phone || user.phone;
 
     const updatedUser = await user.save();
+    updatedUser.password = undefined; // Simple trick
+    // const updatedUserWithoutPassword = await User.findById(updatedUser._id).select('-password');
 
     return sendResponse(res, StatusCodes.OK, 'User updated successfully.', updatedUser);
 });
@@ -156,6 +158,8 @@ const partialUpdateUserController = asyncHandler(async (req, res) => {
     Object.assign(user, updateData);
 
     const updatedUser = await user.save();
+    updatedUser.password = undefined; // Simple trick
+    // const updatedUserWithoutPassword = await User.findById(updatedUser._id).select('-password');
 
     return sendResponse(res, StatusCodes.OK, 'User partially updated.', updatedUser);
 });
@@ -173,6 +177,7 @@ const deleteUserController = asyncHandler(async (req, res) => {
     }
 
     const deletedUser = await User.findByIdAndDelete(id);
+    deletedUser.password = undefined;
 
     return sendResponse(res, StatusCodes.OK, 'User deleted successfully.', deletedUser);
 });
