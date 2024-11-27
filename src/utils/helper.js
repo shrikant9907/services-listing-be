@@ -16,8 +16,11 @@ const getShortString = (maxLimit = 11) => {
     return Math.random().toString(36).substring(3, maxLimit);
 };
 
+const indianPhoneRegex = /^\+91\d{10}$/; // Regex for Indian phone numbers (+91 followed by 10 digits)
+
 module.exports = {
     getShortString,
     validateObjectId,
-    sendResponse
+    sendResponse,
+    indianPhoneRegex
 }
