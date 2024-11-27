@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors')
 const connectDatabase = require('./src/config/dbconfig');
 const categoryRouter = require('./src/routes/categoryRoute');
 const locationRouter = require('./src/routes/locationRoute');
@@ -15,6 +16,11 @@ connectDatabase()
 
 // Middlewares
 app.use(express.json()) // Body pharser
+
+const corsOptions = {
+    origin: 'http://localhost:3000',
+}
+app.use(cors())
 
 app.use('/api/user', userRouter)
 app.use('/api/category', categoryRouter)
