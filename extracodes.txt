@@ -29,3 +29,14 @@ Title = Computer Reparing Servcie in Indore
  Improvement for later
 (Email - Email)
 (Phone - OTP)
+
+
+Service (Title)
+Category <- [ computer ] --- > Add New Category | save -> id -->
+Location <- ID [ location name ]
+
+"Computer Repair Service" 
+"hashID"
+"hashID"
+
+
