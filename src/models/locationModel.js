@@ -7,7 +7,7 @@ const SchemaObject = {
     },
 }
 
-const shortUrlSchema = new Schema(SchemaObject, { timestamps: true })
+const locationSchema = new Schema(SchemaObject, { timestamps: true })
 
-const ShortURL = mongoose.model('Location', shortUrlSchema);
-module.exports = ShortURL; 
+const Location = mongoose.model('Location', locationSchema);
+module.exports = Location; 

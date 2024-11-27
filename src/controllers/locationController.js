@@ -1,54 +1,50 @@
 const asyncHandler = require('express-async-handler');
-const ShortURL = require('../models/locationModel');
+const Location = require('../models/locationModel');
 const { StatusCodes } = require('http-status-codes');
-const { getShortString } = require('../utils/helper');
 
-const getShortURlController = asyncHandler(async (req, res) => {
+const getLocationController = asyncHandler(async (req, res) => {
 
-    // const shortURLs = await ShortURL.find({ originalUrl: "test" });
-    const shortURLs = await ShortURL.find(); // ALl Records 
+    const locations = await Location.find(); // ALl Records 
 
-    if (!shortURLs) {
+    if (!locations) {
         return res.status(StatusCodes.BAD_REQUEST).json({
-            error: 'Unable to fatch user information ', data: shortURLs
+            error: 'Unable to fatch user information ', data: locations
         });
     }
 
-    return res.status(StatusCodes.OK).json({ message: 'Short URL Fetched Successfully.', data: shortURLs });
+    return res.status(StatusCodes.OK).json({ message: 'Location Fetched Successfully.', data: locations });
 });
 
-const createShortURlController = asyncHandler(async (req, res) => {
-    const { originalUrl } = req.body;
+const createLocationController = asyncHandler(async (req, res) => {
+    const { title } = req.body;
 
     // Original URL not found (Bad Request)
-    if (!originalUrl) {
+    if (!title) {
         return res.status(StatusCodes.BAD_REQUEST).json({
             error: 'Original URL is required', data: null
         });
     }
 
-    const shortUrlString = getShortString(9);
-    const newShortUrl = new ShortURL({
-        originalUrl,
-        shortUrl: process.env.SITE_URL + "/" + shortUrlString
+    const newLocation = new Location({
+        title,
     })
 
     // Created
-    const responseData = await newShortUrl.save(); // Save / Update
+    const responseData = await newLocation.save(); // Save / Update
     if (responseData) {
-        return res.status(StatusCodes.CREATED).json({ message: 'Short URL Create Successfully.', data: responseData });
+        return res.status(StatusCodes.CREATED).json({ message: 'Location Create Successfully.', data: responseData });
     }
 
     // Error
     return res.status(StatusCodes.FORBIDDEN).json({ message: 'Something wrong.', data: responseData });
 });
 
-const updateShortURlController = asyncHandler(async (req, res) => {
-    const { originalUrl } = req.body;
+const updateLocationController = asyncHandler(async (req, res) => {
+    const { title } = req.body;
     const { id } = req.params;
 
     // Bad Request if Id not found in the URL
-    if (!originalUrl) {
+    if (!title) {
         return res.status(StatusCodes.BAD_REQUEST).json({
             error: 'Original URL is required', data: null
         });
@@ -62,30 +58,28 @@ const updateShortURlController = asyncHandler(async (req, res) => {
     }
 
     // Find and Not found
-    const findURL = await ShortURL.find({ _id: id });
+    const findURL = await Location.find({ _id: id });
     if (!findURL) {
         return res.status(StatusCodes.NOT_FOUND).json({ message: 'Unable to find Url with given id', data: null });
     }
 
     // Find and Update
-    // const updateData = await ShortURL.findOneAndUpdate({ _id: id }, { originalUrl: originalUrl }, { new: true })
-    // const updateData = await ShortURL.findOneAndReplace({ _id: id }, { originalUrl: originalUrl }, { new: true })
-    const updateData = await ShortURL.findByIdAndUpdate({ _id: id }, { originalUrl: originalUrl }, { new: true }) // By Default original that's why passing third new parameter
+    const updateData = await Location.findByIdAndUpdate({ _id: id }, { title: title }, { new: true }) // By Default original that's why passing third new parameter
     if (updateData) {
-        return res.status(200).json({ message: 'Short URL Updated', data: updateData });
+        return res.status(200).json({ message: 'Location Updated', data: updateData });
     }
 
     // Error
-    return res.status(StatusCodes.FORBIDDEN).json({ message: 'Unable to update short url.', data: null });
+    return res.status(StatusCodes.FORBIDDEN).json({ message: 'Unable to update location.', data: null });
 });
 
 // Diffience unclear
-const partialUpdateShortURlController = asyncHandler(async (req, res) => {
-    const { originalUrl } = req.body; ///  4 - 5 Put (Full) (Patch partial)
+const partialUpdateLocationController = asyncHandler(async (req, res) => {
+    const { title } = req.body; ///  4 - 5 Put (Full) (Patch partial)
     const { id } = req.params;
 
     // Bad Request if Id not found in the URL
-    if (!originalUrl) {
+    if (!title) {
         return res.status(StatusCodes.BAD_REQUEST).json({
             error: 'Original URL is required', data: null
         });
@@ -99,22 +93,22 @@ const partialUpdateShortURlController = asyncHandler(async (req, res) => {
     }
 
     // Find and Not found
-    const findURL = await ShortURL.find({ _id: id });
+    const findURL = await Location.find({ _id: id });
     if (!findURL) {
         return res.status(StatusCodes.NOT_FOUND).json({ message: 'Unable to find Url with given id', data: null });
     }
 
     // Find and Update
-    const updateData = await ShortURL.findByIdAndUpdate({ _id: id }, { originalUrl: originalUrl }, { new: true }) // By Default original that's why passing third new parameter
+    const updateData = await Location.findByIdAndUpdate({ _id: id }, { title: title }, { new: true }) // By Default original that's why passing third new parameter
     if (updateData) {
-        return res.status(200).json({ message: 'Short URL Updated', data: updateData });
+        return res.status(200).json({ message: 'Location Updated', data: updateData });
     }
 
     // Error
-    return res.status(StatusCodes.FORBIDDEN).json({ message: 'Unable to update short url.', data: null });
+    return res.status(StatusCodes.FORBIDDEN).json({ message: 'Unable to update location.', data: null });
 });
 
-const deleteShortURlController = asyncHandler(async (req, res) => {
+const deleteLocationController = asyncHandler(async (req, res) => {
 
     const { id } = req.params;
     // Bad Request if Id not found in the URL
@@ -127,26 +121,26 @@ const deleteShortURlController = asyncHandler(async (req, res) => {
     // Invalid ID
 
     // Find and Not found
-    const findURL = await ShortURL.find({ _id: id });
+    const findURL = await Location.find({ _id: id });
     if (!findURL) {
         return res.status(StatusCodes.NOT_FOUND).json({ message: 'Unable to find Url with given id', data: null });
     }
 
     // Find and Delete
-    const deletedData = await ShortURL.findByIdAndDelete({ _id: id });
+    const deletedData = await Location.findByIdAndDelete({ _id: id });
     if (deletedData) {
-        return res.status(200).json({ message: 'Short URL Deleted', data: deletedData });
+        return res.status(200).json({ message: 'Location Deleted', data: deletedData });
     }
 
     // Error
-    return res.status(StatusCodes.FORBIDDEN).json({ message: 'Unable to delete short url.', data: null });
+    return res.status(StatusCodes.FORBIDDEN).json({ message: 'Unable to delete location.', data: null });
 
 });
 
 module.exports = {
-    getShortURlController,
-    createShortURlController,
-    updateShortURlController,
-    partialUpdateShortURlController,
-    deleteShortURlController
+    getLocationController,
+    createLocationController,
+    updateLocationController,
+    partialUpdateLocationController,
+    deleteLocationController
 }
