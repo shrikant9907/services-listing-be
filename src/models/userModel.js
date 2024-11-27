@@ -25,14 +25,14 @@ const userSchema = new Schema({
     phone: {
         type: String,
         trim: true,
-        minlength: [10, 'Phone number must be at least 10 digits'],
-        maxlength: [15, 'Phone number cannot exceed 15 digits'],
-        validate: {
-            validator: function (v) {
-                return /\d{10,15}/.test(v);
-            },
-            message: 'Phone number must contain only digits.',
-        },
+        // minlength: [10, 'Phone number must be at least 10 digits'],
+        // maxlength: [15, 'Phone number cannot exceed 15 digits'],
+        // validate: {
+        //     validator: function (v) {
+        //         return /\d{10,15}/.test(v);
+        //     },
+        //     message: 'Phone number must contain only digits.',
+        // },
         default: null,
     },
 }, {
