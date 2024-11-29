@@ -10,26 +10,27 @@ const getserviceController = asyncHandler(async (req, res) => {
 
 
     const services = await Service.aggregate([
-        { // Filter
-            $match: {
-                title: {
-                    $eq: title
-                }
+        // { // Filter
+        //     $match: {
+        //         title: {
+        //             $eq: title
+        //         }
+        //     }
+        // },
+        {
+            $lookup: {// Table
+                from: "categories",
+                localField: "category",
+                foreignField: "_id",
+                as: "catFullDetails"
             }
         },
         {
             $lookup: {
-                from: "category",
-                localField: "category",
+                from: "locations",
+                localField: "location",
                 foreignField: "_id",
-                as: "categoryDetails"
-            }
-        },
-        {
-            $project: {
-                "title": 1,
-                "category": 1,
-                "createdAt": 1,
+                as: "locationDetails"
             }
         },
         {
@@ -39,6 +40,15 @@ const getserviceController = asyncHandler(async (req, res) => {
         },
         {
             $limit: 2
+        },
+        {
+            $project: {
+                "title": 1,
+                "category": 1,
+                "location": 1,
+                // "createdAt": 1,
+                "catFullDetails": 1,
+            }
         },
         // {
         //     $count: "totalUsers"
