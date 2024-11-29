@@ -4,6 +4,58 @@ const { StatusCodes } = require('http-status-codes');
 
 const getserviceController = asyncHandler(async (req, res) => {
 
+    const testCat = '67499e2c6445d4ea0684684b';
+    // const title = 'Event Managment';
+    const title = 'Welding Service - Updated';
+
+
+    const services = await Service.aggregate([
+        { // Filter
+            $match: {
+                title: {
+                    $eq: title
+                }
+            }
+        },
+        {
+            $lookup: {
+                from: "category",
+                localField: "category",
+                foreignField: "_id",
+                as: "categoryDetails"
+            }
+        },
+        {
+            $project: {
+                "title": 1,
+                "category": 1,
+                "createdAt": 1,
+            }
+        },
+        {
+            $sort: {
+                "createdAt": -1
+            }
+        },
+        {
+            $limit: 2
+        },
+        // {
+        //     $count: "totalUsers"
+        // }
+    ]);
+
+    if (!services) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+            error: 'Unable to fatch user information ', data: services
+        });
+    }
+
+    return res.status(StatusCodes.OK).json({ message: 'Service Fetched Successfully.', data: services });
+});
+
+const getserviceControllerBck = asyncHandler(async (req, res) => {
+
     const services = await Service.find()
         .sort({ '_id': -1 })
         .populate('category')
